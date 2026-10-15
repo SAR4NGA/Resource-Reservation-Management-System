@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  role         String        @default("member") // "member" | "admin"
+  createdAt    DateTime      @default(now()) @map("created_at")
+  reservations Reservation[]
+
+  @@map("users")
+}
+
+model Resource {
+  id           String        @id @default(uuid())
+  name         String
+  type         String
+  capacity     Int?
+  location     String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+  reservations Reservation[]
+
+  @@map("resources")
+}
+
+model Reservation {
+  id         String   @id @default(uuid())
+  resourceId String   @map("resource_id")
+  userId     String   @map("user_id")
+  team       String?
+  startTime  DateTime @map("start_time")
+  endTime    DateTime @map("end_time")
+  status     String   @default("confirmed") // "confirmed" | "cancelled"
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  resource Resource @relation(fields: [resourceId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  // Speeds up the overlap check, which always filters by resource + time window
+  @@index([resourceId, startTime, endTime])
+  @@map("reservations")
+}
