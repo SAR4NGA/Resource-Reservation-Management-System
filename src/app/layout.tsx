@@ -1,0 +1,48 @@
+import type { Metadata } from "next";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import Link from "next/link";
+import "./globals.css";
+
+const sans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-sans",
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
+
+export const metadata: Metadata = {
+  title: "Resource Reservation System",
+  description: "Centralized scheduling for shared organizational resources.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body>
+        <header className="topbar">
+          <div className="topbar-inner">
+            <div>
+              <span className="brand">Resource Desk</span>
+              <span className="brand-sub">reservation system</span>
+            </div>
+            <nav>
+              <Link href="/">Overview</Link>
+              <Link href="/resources">Resources</Link>
+              <Link href="/reservations">Reservations</Link>
+            </nav>
+          </div>
+        </header>
+        <div className="shell">{children}</div>
+      </body>
+    </html>
+  );
+}
