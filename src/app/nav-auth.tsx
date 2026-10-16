@@ -2,6 +2,8 @@
 
 import { useSession, signOut } from "next-auth/react";
 
+import Link from "next/link";
+
 export function NavAuth() {
   const { data: session, status } = useSession();
 
@@ -9,9 +11,9 @@ export function NavAuth() {
 
   if (!session) {
     return (
-      <a href="/login" className="mono">
+      <Link href="/login" className="nav-link">
         Log in
-      </a>
+      </Link>
     );
   }
 

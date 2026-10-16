@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { Providers } from "./providers";
+import { NavLinks } from "./nav-links";
 import { NavAuth } from "./nav-auth";
 
 const sans = IBM_Plex_Sans({
@@ -33,14 +34,12 @@ export default function RootLayout({
         <Providers>
           <header className="topbar">
             <div className="topbar-inner">
-              <div>
+              <Link href="/" className="brand-group">
                 <span className="brand">Resource Desk</span>
                 <span className="brand-sub">reservation system</span>
-              </div>
+              </Link>
               <nav>
-                <Link href="/">Overview</Link>
-                <Link href="/resources">Resources</Link>
-                <Link href="/reservations">Reservations</Link>
+                <NavLinks />
                 <NavAuth />
               </nav>
             </div>
