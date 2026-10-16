@@ -56,8 +56,6 @@ to one user and one resource, and carries its own time window and status
 (e.g. confirmed/cancelled) so history is preserved rather than deleted on
 cancellation. See the ER diagram (link below) for the full schema.
 
-**ER diagram:** 
-https://github.com/SAR4NGA/Resource-Reservation-Management-System/tree/main/diagrams
 
 ## Getting started
 
@@ -130,7 +128,10 @@ piece of business logic the conflict prevention relies on.
 
 (https://drive.google.com/file/d/1Xa4qPDczpjfxId0TFw0Vyr20R4QR0nTV/view?usp=drive_link)
 
+**ER diagram:** 
+https://github.com/SAR4NGA/Resource-Reservation-Management-System/tree/main/diagrams
+
 ## Author
 
-Pasindu Saranga (CheesCat)
+Pasindu Saranga
 GitHub: SAR4NGA
