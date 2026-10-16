@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-
 import Link from "next/link";
 
 export function NavAuth() {
@@ -17,14 +16,27 @@ export function NavAuth() {
     );
   }
 
+  const role = (session.user.role || "member").toLowerCase();
+  const name = session.user.name || session.user.email || "User";
+  const initial = name.trim().charAt(0).toUpperCase();
+
   return (
-    <span className="nav-user">
-      <span className="mono muted">
-        {session.user.name} · {session.user.role}
-      </span>
-      <button className="secondary" onClick={() => signOut({ callbackUrl: "/login" })}>
+    <div className="nav-user">
+      <div className="user-chip">
+        <span className={`user-avatar ${role}`} aria-hidden="true">
+          {initial}
+        </span>
+        <span className="user-name">{name}</span>
+        <span className={`user-role-badge ${role}`}>{role}</span>
+      </div>
+      <button
+        type="button"
+        className="btn-logout"
+        onClick={() => signOut({ callbackUrl: "/login" })}
+        title="Log out"
+      >
         Log out
       </button>
-    </span>
+    </div>
   );
 }
