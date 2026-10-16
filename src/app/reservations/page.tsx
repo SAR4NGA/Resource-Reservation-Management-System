@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 type Resource = { id: string; name: string; type: string };
 type Reservation = {
@@ -10,7 +11,7 @@ type Reservation = {
   endTime: string;
   status: "confirmed" | "cancelled";
   resource: Resource;
-  user: { name: string; email: string };
+  user: { id: string; name: string; email: string };
 };
 
 function formatDateTime(iso: string) {
@@ -23,6 +24,9 @@ function formatDateTime(iso: string) {
 }
 
 export default function ReservationsPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user.role === "admin";
+
   const [resources, setResources] = useState<Resource[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,8 +35,6 @@ export default function ReservationsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [resourceId, setResourceId] = useState("");
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
   const [team, setTeam] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -61,14 +63,7 @@ export default function ReservationsPage() {
       const res = await fetch("/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resourceId,
-          userName,
-          userEmail,
-          team,
-          startTime,
-          endTime,
-        }),
+        body: JSON.stringify({ resourceId, team, startTime, endTime }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -102,6 +97,10 @@ export default function ReservationsPage() {
   const past = reservations.filter(
     (r) => r.status === "cancelled" || new Date(r.endTime) < new Date()
   );
+
+  function canCancel(r: Reservation) {
+    return isAdmin || r.user.id === session?.user.id;
+  }
 
   return (
     <>
@@ -140,25 +139,6 @@ export default function ReservationsPage() {
                 value={team}
                 onChange={(e) => setTeam(e.target.value)}
                 placeholder="Engineering"
-              />
-            </label>
-          </div>
-          <div className="form-row">
-            <label>
-              Your name
-              <input
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Your email
-              <input
-                type="email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                required
               />
             </label>
           </div>
@@ -221,9 +201,11 @@ export default function ReservationsPage() {
                   <span className="badge badge-confirmed">confirmed</span>
                 </td>
                 <td>
-                  <button className="secondary" onClick={() => handleCancel(r.id)}>
-                    Cancel
-                  </button>
+                  {canCancel(r) && (
+                    <button className="secondary" onClick={() => handleCancel(r.id)}>
+                      Cancel
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

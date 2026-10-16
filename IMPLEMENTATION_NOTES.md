@@ -86,12 +86,62 @@ thing I'd upgrade in a real production version of this system.
   a fraction of the build time. A calendar grid is the first UI upgrade I'd
   make with more time.
 
+## Authentication: what was added, and where I drew the line
+
+Authentication started out of scope — the brief doesn't mention it, and
+building a full identity system is easy scope creep for an assessment with a
+hard deadline. I added a minimal version anyway, because without it anyone
+could cancel anyone else's reservation or add resources, which undercuts the
+"reliable as the organization grows" requirement in the business scenario
+more than I was comfortable with.
+
+What's actually there:
+- Email/password login via NextAuth (`next-auth`), JWT session strategy (no
+  separate sessions table — keeps the schema and infra simpler).
+- Two roles: `admin` and `member`, stored as a plain string on `User` (same
+  field that already existed in the schema).
+- A seed script (`prisma/seed.ts`) creates one default admin account, so
+  there's always a known way in without building an invite system.
+- Self-serve registration creates `member` accounts only — there's no UI
+  path to become an admin, by design.
+- Resource creation (`POST /api/resources`) requires `admin`.
+- Cancelling a reservation (`PATCH /api/reservations/[id]`) requires being
+  the reservation's own owner, or an admin.
+- Route-level protection via Next.js middleware on the main pages; API
+  routes additionally check the session server-side (defense in depth — the
+  middleware alone wouldn't stop a direct API call).
+
+What I deliberately left out, and why: password reset (needs email
+delivery, which is itself out of scope), email verification (same reason),
+OAuth/social login (adds provider config for no real benefit at this scale),
+and any UI for promoting a member to admin (the seed script is the only way
+to get an admin account — reasonable for an assessment, not for a real
+product). Session security is also minimal by production standards: no
+rate-limiting on login attempts, no account lockout. All of this is the kind
+of thing I'd build out in a real deployment but would be unjustified
+complexity here.
+
+## Testing
+
+Added unit tests (`src/lib/reservations.test.ts`, via Vitest) for the
+interval-overlap function specifically, rather than trying to cover the
+whole app. Reasoning: it's the single piece of logic where a subtle bug
+would be worst — silently allowing a double-booking defeats the entire
+point of the system — and it's pure (no database, no network), so it's cheap
+to test thoroughly. Cases covered: simple overlap in both directions, one
+range fully containing another, identical ranges, back-to-back adjacent
+bookings correctly NOT overlapping (the half-open interval `[start, end)`
+choice matters here), clearly separate ranges, and partial overlap.
+
+I did not add integration tests against a real database, or component/UI
+tests, given the time available — those would be the next layer to add.
+
 ## What I'd add with more time
 
 - Database-level exclusion constraint as a second line of defense against
   overlap, as noted above.
-- Authentication, so a reservation can only be cancelled by the person who
-  made it (or an admin) rather than by anyone with the link.
+- Password reset, email verification, and rate-limiting on login.
+- Integration tests against a real (test) database, and basic UI tests.
 - A calendar view per resource.
 - Recurring reservations (explicitly out of scope per the README, but a
   natural next step).

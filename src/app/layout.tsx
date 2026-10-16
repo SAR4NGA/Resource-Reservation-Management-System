@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { Providers } from "./providers";
+import { NavLinks } from "./nav-links";
+import { NavAuth } from "./nav-auth";
 
 const sans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -28,20 +31,21 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body>
-        <header className="topbar">
-          <div className="topbar-inner">
-            <div>
-              <span className="brand">Resource Desk</span>
-              <span className="brand-sub">reservation system</span>
+        <Providers>
+          <header className="topbar">
+            <div className="topbar-inner">
+              <Link href="/" className="brand-group">
+                <span className="brand">Resource Desk</span>
+                <span className="brand-sub">reservation system</span>
+              </Link>
+              <nav>
+                <NavLinks />
+                <NavAuth />
+              </nav>
             </div>
-            <nav>
-              <Link href="/">Overview</Link>
-              <Link href="/resources">Resources</Link>
-              <Link href="/reservations">Reservations</Link>
-            </nav>
-          </div>
-        </header>
-        <div className="shell">{children}</div>
+          </header>
+          <div className="shell">{children}</div>
+        </Providers>
       </body>
     </html>
   );
