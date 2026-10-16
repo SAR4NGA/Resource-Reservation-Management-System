@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createReservation, ReservationConflictError } from "@/lib/reservations";
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
   const reservations = await prisma.reservation.findMany({
     orderBy: { startTime: "asc" },
     include: { resource: true, user: true },
@@ -11,21 +18,27 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { resourceId, userName, userEmail, team, startTime, endTime } = body;
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
 
-  if (!resourceId || !userName || !userEmail || !startTime || !endTime) {
+  const body = await req.json();
+  const { resourceId, team, startTime, endTime } = body;
+
+  if (!resourceId || !startTime || !endTime) {
     return NextResponse.json(
-      { error: "resourceId, userName, userEmail, startTime and endTime are required." },
+      { error: "resourceId, startTime and endTime are required." },
       { status: 400 }
     );
   }
 
   try {
+    // The booking user comes from the session, not the request body, so
+    // nobody can create a reservation under someone else's name.
     const reservation = await createReservation({
       resourceId,
-      userName,
-      userEmail,
+      userId: session.user.id,
       team,
       startTime: new Date(startTime),
       endTime: new Date(endTime),

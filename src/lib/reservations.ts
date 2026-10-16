@@ -8,10 +8,18 @@ export class ReservationConflictError extends Error {
 }
 
 /**
+ * Pure overlap test, kept separate from the database query so it can be
+ * unit tested directly without needing a running Postgres instance
+ * (see reservations.test.ts).
+ *
  * Two time ranges [aStart, aEnd) and [bStart, bEnd) overlap exactly when
  * aStart < bEnd AND bStart < aEnd. This is the standard interval-overlap
  * test and is what keeps the system from double-booking a resource.
  */
+export function rangesOverlap(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
+  return aStart < bEnd && bStart < aEnd;
+}
+
 export async function findConflictingReservation(
   resourceId: string,
   startTime: Date,
@@ -29,29 +37,18 @@ export async function findConflictingReservation(
   });
 }
 
-export async function findOrCreateUser(name: string, email: string) {
-  return prisma.user.upsert({
-    where: { email },
-    update: { name },
-    create: { name, email },
-  });
-}
-
 export async function createReservation(params: {
   resourceId: string;
-  userName: string;
-  userEmail: string;
+  userId: string;
   team?: string;
   startTime: Date;
   endTime: Date;
 }) {
-  const { resourceId, userName, userEmail, team, startTime, endTime } = params;
+  const { resourceId, userId, team, startTime, endTime } = params;
 
   if (startTime >= endTime) {
     throw new Error("Start time must be before end time.");
   }
-
-  const user = await findOrCreateUser(userName, userEmail);
 
   // Re-checked inside the transaction so two near-simultaneous bookings
   // for the same resource can't both slip through (basic race protection).
@@ -72,7 +69,7 @@ export async function createReservation(params: {
     return tx.reservation.create({
       data: {
         resourceId,
-        userId: user.id,
+        userId,
         team: team || null,
         startTime,
         endTime,

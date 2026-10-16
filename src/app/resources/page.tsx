@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 type Resource = {
   id: string;
@@ -11,6 +12,9 @@ type Resource = {
 };
 
 export default function ResourcesPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user.role === "admin";
+
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -67,53 +71,59 @@ export default function ResourcesPage() {
         </div>
       </div>
 
-      <div className="panel">
-        <form onSubmit={handleSubmit}>
-          {error && <div className="message message-error">{error}</div>}
-          <div className="form-row">
-            <label>
-              Name
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Conference Room A"
-                required
-              />
-            </label>
-            <label>
-              Type
-              <input
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                placeholder="room / vehicle / equipment"
-                required
-              />
-            </label>
-          </div>
-          <div className="form-row">
-            <label>
-              Capacity (optional)
-              <input
-                value={capacity}
-                onChange={(e) => setCapacity(e.target.value)}
-                type="number"
-                min="1"
-              />
-            </label>
-            <label>
-              Location (optional)
-              <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="2nd floor"
-              />
-            </label>
-          </div>
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Adding…" : "Add resource"}
-          </button>
-        </form>
-      </div>
+      {isAdmin ? (
+        <div className="panel">
+          <form onSubmit={handleSubmit}>
+            {error && <div className="message message-error">{error}</div>}
+            <div className="form-row">
+              <label>
+                Name
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Conference Room A"
+                  required
+                />
+              </label>
+              <label>
+                Type
+                <input
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  placeholder="room / vehicle / equipment"
+                  required
+                />
+              </label>
+            </div>
+            <div className="form-row">
+              <label>
+                Capacity (optional)
+                <input
+                  value={capacity}
+                  onChange={(e) => setCapacity(e.target.value)}
+                  type="number"
+                  min="1"
+                />
+              </label>
+              <label>
+                Location (optional)
+                <input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="2nd floor"
+                />
+              </label>
+            </div>
+            <button type="submit" disabled={submitting}>
+              {submitting ? "Adding…" : "Add resource"}
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="panel">
+          <p className="empty">Only admins can add resources.</p>
+        </div>
+      )}
 
       <div className="panel">
         <table>

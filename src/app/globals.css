@@ -265,6 +265,33 @@ button.secondary {
   font-size: 14px;
 }
 
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-user button {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.auth-shell {
+  max-width: 380px;
+  margin: 64px auto 0;
+}
+
+.auth-shell .panel {
+  padding: 4px;
+}
+
+.auth-switch {
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-top: 16px;
+}
+
 @media (max-width: 640px) {
   .form-row {
     grid-template-columns: 1fr;
